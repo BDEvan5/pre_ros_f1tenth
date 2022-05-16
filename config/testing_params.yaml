@@ -1,15 +1,15 @@
 
 config_filename: "config_file"
-n_laps: 1
+n_laps: 6
 
 # supervision: True
 supervision: False
 
-planner: pure_pursuit 
+# planner: pure_pursuit 
 # planner: random 
-# planner: agent 
+planner: agent 
 
-# agent_name: "SafetyTrainingAgent_3"
+agent_name: "SafetyTrainingAgent_4"
 
 map_name: "columbia_small"
 

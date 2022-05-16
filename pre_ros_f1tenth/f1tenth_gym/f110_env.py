@@ -216,6 +216,7 @@ class F110Env(gym.Env):
 
         dist2 = delta_pt[0, :]**2 + temp_y**2
         closes = dist2 <= 0.1
+        toggle_limit = 20 # 10 laps
         for i in range(self.num_agents):
             if closes[i] and not self.near_starts[i]:
                 self.near_starts[i] = True
@@ -224,10 +225,11 @@ class F110Env(gym.Env):
                 self.near_starts[i] = False
                 self.toggle_list[i] += 1
             self.lap_counts[i] = self.toggle_list[i] // 2
-            if self.toggle_list[i] < 4:
+            if self.toggle_list[i] < toggle_limit:
                 self.lap_times[i] = self.current_time
+
         
-        done = (self.collisions[self.ego_idx]) or np.all(self.toggle_list >= 4)
+        done = (self.collisions[self.ego_idx]) #or np.all(self.toggle_list >= 4)
         
         return done, self.toggle_list >= 4
 

@@ -1,8 +1,8 @@
 from pre_ros_f1tenth.f1tenth_gym.f110_env import F110Env
 from pre_ros_f1tenth.utils import load_conf
 from safety_system_ros.Planners.PurePursuitPlanner import PurePursuitPlanner
-from safety_system_ros.Planners.TrainingAgent import TestVehicle
-from safety_system_ros.Supervisor import Supervisor
+from safety_system_ros.Planners.TrainingAgent import TestVehicle, TrainVehicle
+from safety_system_ros.Supervisor import Supervisor, LearningSupervisor
 
 import numpy as np
 
@@ -13,15 +13,7 @@ class PreRosSim(F110Env):
         self.conf = load_conf(self.test_params.config_filename)
         super().__init__(map=map_name, map_ext=".png")
 
-        planner_dict = {'pure_pursuit': PurePursuitPlanner,
-                        'random': RandomPlanner,
-                        'agent': TestVehicle}
-
-        self.planner = planner_dict[self.test_params.planner](self.conf, self.test_params)
-        print(self.planner.name)
-
-        self.supervision = self.test_params.supervision
-        self.supervisor = Supervisor(self.conf, map_name)
+        
 
         self.n_laps = self.test_params.n_laps
 
@@ -46,7 +38,8 @@ class PreRosSim(F110Env):
     def build_observation(self, obs, done):
         self.current_lap_time = obs['lap_times'][0]
         observation = {}
-        observation["scan"] = obs['scans'][0]
+        inds = np.arange(0, 1080, 40)
+        observation["scan"] = obs['scans'][0][inds]
         
         pose_x = obs['poses_x'][0]
         pose_y = obs['poses_y'][0]
@@ -60,8 +53,7 @@ class PreRosSim(F110Env):
         observation['colision_done'] = False
 
         observation['reward'] = 0.0
-        if done and obs['lap_counts'][0] == self.complete_laps: 
-            # a collision has taken place
+        if done: 
             observation['reward'] = -1.0
             observation['colision_done'] = True
         if obs['lap_counts'][0] == self.complete_laps +1:
@@ -70,19 +62,54 @@ class PreRosSim(F110Env):
 
         return observation
 
-    def reset(self):
+    def reset_simulation(self):
         reset_pose = np.zeros(3)[None, :]
-        obs, step_reward, done, _ = F110Env.reset(self, reset_pose)
+        obs, step_reward, done, _ = self.reset(reset_pose)
 
         observation = self.build_observation(obs, done)
 
         return observation
 
-    def run_test(self):
-        observation = self.reset()
+    
+
+    def lap_done(self):
+        print(f"Run {self.complete_laps} Complete in time: {self.current_lap_time}")
+        self.lap_complete_callback()
+
+        self.complete_laps += 1
+
+        if self.complete_laps == self.n_laps:
+            self.running = False
+            # self.save_data_callback()
+            # self.ego_reset()
+            # self.destroy_node()
+
+        self.current_lap_time = 0.0
+
+    def lap_complete_callback(self):
+        pass
+
+class PreRosTesting(PreRosSim):
+    def __init__(self):
+        super().__init__()
+
+        planner_dict = {'pure_pursuit': PurePursuitPlanner,
+                        'random': RandomPlanner,
+                        'agent': TestVehicle}
+
+        self.planner = planner_dict[self.test_params.planner](self.conf, self.test_params)
+        print(self.planner.name)
+
+        self.supervision = self.test_params.supervision
+        self.supervisor = Supervisor(self.conf, self.test_params.map_name)
+
+    def run_testing(self):
+        observation = self.reset_simulation()
 
         while self.running:
             action = self.planner.plan(observation)
+            if self.supervision:
+                action = self.supervisor.supervise(observation['state'], action)
             observation = self.run_step(action)
             self.render('human_fast')
 
@@ -95,19 +122,51 @@ class PreRosSim(F110Env):
 
         print(f"Tests are finished")
 
-    def lap_done(self):
-        print(f"Run {self.complete_laps} Complete in time: {self.current_lap_time}")
-        # self.lap_complete_callback()
+class PreRosTraining(PreRosSim):
+    def __init__(self):
+        super().__init__()
 
-        self.complete_laps += 1
 
-        if self.complete_laps == self.n_laps:
-            self.running = False
-            # self.save_data_callback()
-            # self.ego_reset()
-            # self.destroy_node()
+        planner_dict = {'pure_pursuit': PurePursuitPlanner,
+                        'random': RandomPlanner,
+                        'agent': TrainVehicle}
 
-        self.current_lap_time = 0.0
+        self.planner = planner_dict[self.test_params.planner](self.conf, self.test_params)
+        print(self.planner.name)
+
+        self.supervision = True
+        self.supervisor = LearningSupervisor(self.planner, self.conf, self.test_params.map_name)
+
+    def run_training(self):
+        observation = self.reset_simulation()
+
+        while self.running:
+            action = self.supervisor.plan(observation) 
+            observation = self.run_step(action)
+
+            self.planner.agent.train(2)
+            # self.render('human_fast')
+
+            if observation['lap_done']:
+                self.lap_done()
+                
+            if observation['colision_done']:
+                print(f"Colission Observerd")
+                break
+
+        self.save_data_callback()
+        print(f"Tests are finished")
+
+    def lap_complete_callback(self):
+        print(f"Interventions: {self.supervisor.ep_interventions}")
+        self.supervisor.lap_complete(self.current_lap_time)
+
+
+    def save_data_callback(self):
+        self.planner.agent.save(self.planner.path)
+        self.planner.t_his.print_update(True)
+        self.planner.t_his.save_csv_data()
+        self.supervisor.save_intervention_list()
 
 
 class RandomPlanner:
@@ -123,8 +182,14 @@ class RandomPlanner:
 
 
 def main():
-    sim = PreRosSim()
-    sim.run_test()
+    # sim = PreRosSim()
+    # sim.run_test()
+
+    # sim = PreRosTraining()
+    # sim.run_training()
+
+    sim = PreRosTesting()
+    sim.run_testing()
 
 
 
