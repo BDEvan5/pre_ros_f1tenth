@@ -30,7 +30,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 
 # base classes
-from f110_gym.envs.base_classes import Simulator
+from pre_ros_f1tenth.f1tenth_gym.base_classes import Simulator
 
 # others
 import numpy as np
@@ -113,7 +113,7 @@ class F110Env(gym.Env):
             elif self.map_name == 'levine':
                 self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/levine.yaml'
             else:
-                self.map_path = self.map_name + '.yaml'
+                self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/' + self.map_name + '.yaml'
         except:
             self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/vegas.yaml'
 
@@ -131,7 +131,7 @@ class F110Env(gym.Env):
         try:
             self.num_agents = kwargs['num_agents']
         except:
-            self.num_agents = 2
+            self.num_agents = 1
 
         try:
             self.timestep = kwargs['timestep']
@@ -386,9 +386,9 @@ class F110Env(gym.Env):
         
         if F110Env.renderer is None:
             # first call, initialize everything
-            from f110_gym.envs.rendering import EnvRenderer
+            from pre_ros_f1tenth.f1tenth_gym.rendering import EnvRenderer
             F110Env.renderer = EnvRenderer(WINDOW_W, WINDOW_H)
-            F110Env.renderer.update_map(self.map_name, self.map_ext)
+            F110Env.renderer.update_map(self.map_path, self.map_ext)
             
         F110Env.renderer.update_obs(self.render_obs)
 

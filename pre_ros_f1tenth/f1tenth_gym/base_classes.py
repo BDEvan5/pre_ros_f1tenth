@@ -31,9 +31,9 @@ Author: Hongrui Zheng
 import numpy as np
 from numba import njit
 
-from f110_gym.envs.dynamic_models import vehicle_dynamics_st, pid
-from f110_gym.envs.laser_models import ScanSimulator2D, check_ttc_jit, ray_cast
-from f110_gym.envs.collision_models import get_vertices, collision_multiple
+from pre_ros_f1tenth.f1tenth_gym.dynamic_models import vehicle_dynamics_st, pid
+from pre_ros_f1tenth.f1tenth_gym.laser_models import ScanSimulator2D, check_ttc_jit, ray_cast
+from pre_ros_f1tenth.f1tenth_gym.collision_models import get_vertices, collision_multiple
 
 class RaceCar(object):
     """
