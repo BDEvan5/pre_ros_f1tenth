@@ -16,7 +16,7 @@ from RacingRewards.Reward import RaceTrack, DistanceReward
 
 class TestSimulation():
     def __init__(self, testing_params: str):
-        self.test_params = load_conf('testing_params')
+        self.test_params = load_conf(testing_params)
         self.map_name=self.test_params.map_name
         self.conf = load_conf("config_file")
 
