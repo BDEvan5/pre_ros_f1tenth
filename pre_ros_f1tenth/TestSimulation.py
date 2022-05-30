@@ -1,8 +1,6 @@
 from pre_ros_f1tenth.f1tenth_gym.f110_env import F110Env
 from pre_ros_f1tenth.utils import *
 
-from pre_ros_f1tenth.f1tenth_gym.f110_env import F110Env
-from pre_ros_f1tenth.utils import load_conf
 from safety_system_ros.Planners.PurePursuitPlanner import PurePursuitPlanner
 from safety_system_ros.Planners.TrainingAgent import TestVehicle, TrainVehicle
 from safety_system_ros.Planners.RandomPlanner import RandomPlanner
@@ -11,7 +9,7 @@ from safety_system_ros.Supervisor import Supervisor, LearningSupervisor
 
 import numpy as np
 import time
-from RacingRewards.Reward import RaceTrack, DistanceReward
+from safety_system_ros.utils.Reward import RaceTrack, DistanceReward
 
 
 class TestSimulation():
@@ -29,7 +27,6 @@ class TestSimulation():
         self.prev_obs = None
 
         self.race_track = None
-        self.map_name = None
         self.reward = None
 
         self.supervision = self.test_params.supervision
@@ -113,9 +110,7 @@ class TestSimulation():
         """
         observation = {}
         observation['current_laptime'] = obs['lap_times'][0]
-        observation['scan'] = obs['scans'][0] #TODO: introduce slicing here
-        # inds = np.arange(0, 1080, 40)
-        # observation["scan"] = obs['scans'][0][inds]
+        observation['scan'] = obs['scans'][0] 
         
         pose_x = obs['poses_x'][0]
         pose_y = obs['poses_y'][0]
@@ -161,50 +156,37 @@ class TestSimulation():
 
 
 class TrainSimulation(TestSimulation):
-    def __init__(self, run_file):
-        super().__init__(run_file)
+    def __init__(self, test_params):
+        super().__init__(test_params)
+
+        #train  
+        self.race_track = RaceTrack(self.test_params.map_name)
+        self.race_track.load_center_pts()
+        self.reward = DistanceReward(self.race_track)
 
         self.n_train_steps = self.test_params.n_train_steps
         self.reward = None
         self.previous_observation = None
 
     def run_training_evaluation(self):
-        for run in self.run_data:
-            self.env = F110Env(map=run.map_name)
-            self.map_name = run.map_name
+        self.planner = TrainVehicle(self.conf, self.test_params)
+        self.supervisor = LearningSupervisor(self.planner, self.conf, self.map_name)
+        self.completed_laps = 0
 
-            #train
-            self.race_track = RaceTrack(run.map_name)
-            self.race_track.load_center_pts()
-            # self.race_track.plot_wpts()
-            self.reward = DistanceReward(self.race_track)
+        self.run_training()
 
-            if run.discrete: self.planner = TrainVehicleDiscrete(run, self.conf)
-            else: self.planner = TrainVehicle(run, self.conf)
-            self.completed_laps = 0
+        self.planner = TestVehicle(self.conf, self.test_params)
 
-            self.run_training()
+        self.n_test_laps = self.test_params.n_test_laps
 
-            #T_evaluationnf) 
-            # else: 
-            #     self.planner = TestVehicle(run, self.conf)
+        self.lap_times = []
+        self.completed_laps = 0
 
-            self.n_test_laps = self.test_params.n_test_laps
+        self.run_testing()
 
-            self.lap_times = []
-            self.completed_laps = 0
-
-            eval_dict = self.run_testing()
-            run_dict = vars(run)
-            run_dict.update(eval_dict)
-
-            save_conf_dict(run_dict)
-
-            self.env.close_rendering()
 
 
     def run_training(self):
-        assert self.env != None, "No environment created"
         start_time = time.time()
         print(f"Starting Baseline Training: {self.planner.name}")
 
@@ -213,10 +195,10 @@ class TrainSimulation(TestSimulation):
 
         for i in range(self.n_train_steps):
             self.prev_obs = observation
-            action = self.planner.plan(observation)
+            action = self.supervisor.plan(observation)
             observation = self.run_step(action)
 
-            self.planner.agent.train()
+            self.planner.agent.train(2)
 
             if self.show_train: self.env.render('human_fast')
 
@@ -252,11 +234,11 @@ class TrainSimulation(TestSimulation):
 
 
 def main():
-    sim = TestSimulation("testing_params")
-    sim.run_testing()
+    # sim = TestSimulation("testing_params")
+    # sim.run_testing()
 
-    # sim = TrainSimulation("BenchmarkRuns")
-    # sim.run_training_evaluation()
+    sim = TrainSimulation("testing_params")
+    sim.run_training_evaluation()
 
 if __name__ == '__main__':
     main()

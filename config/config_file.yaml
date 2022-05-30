@@ -19,6 +19,7 @@ lookahead: 1
 range_finder_scale: 5
 h_size: 100
 sim_steps: 3
+max_laptime: 100
 
 #-------------------------------------------------------------------------
 
