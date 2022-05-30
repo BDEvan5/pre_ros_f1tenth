@@ -1,5 +1,5 @@
 from pre_ros_f1tenth.f1tenth_gym.f110_env import F110Env
-from RacingRewards.Utils.utils import *
+from pre_ros_f1tenth.utils import *
 
 from pre_ros_f1tenth.f1tenth_gym.f110_env import F110Env
 from pre_ros_f1tenth.utils import load_conf
@@ -80,10 +80,9 @@ class TestSimulation():
 
         run_dict = vars(self.test_params)
         run_dict.update(eval_dict)
+        run_dict['vehicle_path'] = self.conf.directory + self.conf.vehicle_path
 
         save_conf_dict(run_dict)
-
-        self.env.close_rendering()
 
     # this is an overide
     def run_step(self, action):

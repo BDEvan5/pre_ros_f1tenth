@@ -11,13 +11,13 @@ planner: random
 
 agent_name: "SafetyTrainingAgent_4"
 
-map_name: "columbia_small"
+map_name: "levine_blocked"
+# map_name: "columbia_small"
 
-test_n: 10
 sim_steps: 5
 
 n_train_steps: 40000
-n_test_laps: 10
+n_test_laps: 1
 
 show_train: True
 # show_train: False
