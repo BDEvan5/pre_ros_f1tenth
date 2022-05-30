@@ -1,13 +1,13 @@
 
-config_filename: "config_file"
-n_laps: 6
+# config_filename: "config_file"
+# n_laps: 6
 
-# supervision: True
-supervision: False
+supervision: True
+# supervision: False
 
 # planner: pure_pursuit 
-# planner: random 
-planner: agent 
+planner: random 
+# planner: agent 
 
 agent_name: "SafetyTrainingAgent_4"
 
@@ -16,3 +16,12 @@ map_name: "columbia_small"
 test_n: 10
 sim_steps: 5
 
+n_train_steps: 40000
+n_test_laps: 10
+
+show_train: True
+# show_train: False
+show_test: True
+# show_test: False
+verbose: True
+# verbose: False

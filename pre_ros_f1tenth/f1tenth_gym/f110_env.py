@@ -105,17 +105,20 @@ class F110Env(gym.Env):
             self.seed = 12345
         try:
             self.map_name = kwargs['map']
+            base_path = "/home/benjy/sim_ws/src/safety_system_ros/map_data/"
+            self.map_path = base_path + self.map_name + ".yaml"
             # different default maps
-            if self.map_name == 'berlin':
-                self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/berlin.yaml'
-            elif self.map_name == 'skirk':
-                self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/skirk.yaml'
-            elif self.map_name == 'levine':
-                self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/levine.yaml'
-            else:
-                self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/' + self.map_name + '.yaml'
+            # if self.map_name == 'berlin':
+            #     self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/berlin.yaml'
+            # elif self.map_name == 'skirk':
+            #     self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/skirk.yaml'
+            # elif self.map_name == 'levine':
+            #     self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/levine.yaml'
+            # else:
+            #     self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/' + self.map_name + '.yaml'
         except:
-            self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/vegas.yaml'
+            raise ValueError('Map name not specified')
+            # self.map_path = os.path.dirname(os.path.abspath(__file__)) + '/maps/vegas.yaml'
 
         try:
             self.map_ext = kwargs['map_ext']
