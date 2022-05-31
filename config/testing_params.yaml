@@ -1,6 +1,4 @@
 
-# config_filename: "config_file"
-# n_laps: 6
 
 supervision: True
 # supervision: False
@@ -12,8 +10,8 @@ planner: random
 agent_name: "SafetyTrainingAgent_4"
 
 # map_name: "f1_aut_wide"
-# map_name: "levine_blocked"
-map_name: "columbia_small"
+map_name: "levine_blocked"
+# map_name: "columbia_small"
 
 sim_steps: 5
 
