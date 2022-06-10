@@ -7,7 +7,7 @@ supervision: True
 planner: random 
 # planner: agent 
 
-agent_name: "SafetyTrainingAgent_4"
+agent_name: "SafetyTrainingAgent_1"
 
 map_name: "f1_aut_wide"
 # map_name: "levine_blocked"
