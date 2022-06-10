@@ -1,0 +1,24 @@
+
+
+supervision: True
+# supervision: False
+
+
+agent_name: "BaselineAgent_1"
+
+map_name: "f1_aut_wide"
+# map_name: "levine_blocked"
+# map_name: "columbia_small"
+
+sim_steps: 5
+
+n_train_steps: 25000
+n_test_laps: 2
+
+show_train: True
+# show_train: False
+show_test: True
+# show_test: False
+verbose: True
+# verbose: False
+

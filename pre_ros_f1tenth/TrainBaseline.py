@@ -27,14 +27,12 @@ class TrainSimulation(BaseWrapper):
 
     def run_training_evaluation(self):
         self.planner = TrainVehicle(self.conf, self.test_params.agent_name)
-        self.supervisor = LearningSupervisor(self.planner, self.conf, self.map_name)
-        self.supervision = True
+        self.supervision = False
         self.completed_laps = 0
 
         self.run_training()
 
         self.planner = TestVehicle(self.conf, self.test_params.agent_name)
-        self.supervision = False
 
         self.n_test_laps = self.test_params.n_test_laps
 
@@ -64,7 +62,7 @@ class TrainSimulation(BaseWrapper):
 
         for i in range(self.n_train_steps):
             self.prev_obs = observation
-            action = self.supervisor.plan(observation)
+            action = self.planner.plan(observation)
             observation = self.run_step(action)
 
             self.planner.agent.train(2)
@@ -102,7 +100,7 @@ class TrainSimulation(BaseWrapper):
 
 
 if __name__ == "__main__":
-    test_params = "testing_params"
+    test_params = "baseline_params"
     t = TrainSimulation(test_params)
     t.run_training_evaluation()
 
