@@ -1,7 +1,7 @@
 from pre_ros_f1tenth.TestWrapper import BaseWrapper
-from safety_system_ros.Planners.PurePursuitPlanner import PurePursuitPlanner
-from safety_system_ros.Planners.follow_the_gap import FollowTheGap
+from safety_system_ros.Planners.RandomPlanner import RandomPlanner
 from pre_ros_f1tenth.utils import *
+from safety_system_ros.Supervisor import Supervisor, LearningSupervisor
 
 
 class ClassicalTest(BaseWrapper):
@@ -9,10 +9,10 @@ class ClassicalTest(BaseWrapper):
         super().__init__(testing_params)
         self.test_params = load_conf(testing_params)
 
-        self.planner = PurePursuitPlanner(self.conf, self.test_params.map_name)
-        # self.planner = FollowTheGap(self.conf)
+        self.planner = RandomPlanner(self.conf)
 
-        self.supervision = False
+        self.supervision = True
+        self.supervisor = Supervisor(self.conf, self.test_params.map_name)
 
         self.run_testing()
 
