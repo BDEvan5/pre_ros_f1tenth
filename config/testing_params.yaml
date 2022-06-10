@@ -16,7 +16,7 @@ map_name: "f1_aut_wide"
 sim_steps: 5
 
 n_train_steps: 4000
-n_test_laps: 5
+n_test_laps: 10
 
 show_train: True
 # show_train: False
