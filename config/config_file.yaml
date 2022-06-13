@@ -25,7 +25,7 @@ max_laptime: 100
 
 #save_paths
 # directory: "/home/benjy/Documents/AutonomousRacing/pre_ros_f1tenth/"
-directory: "/home/benjy/sim_ws/src/safety_system_ros/"
+directory: "/Users/benjamin/Documents/GitHub/safety_system_ros/"
 vehicle_path: "Data/Vehicles/"
 kernel_path: "Data/Kernels/"
 dynamics_path: "Data/Dynamics/"

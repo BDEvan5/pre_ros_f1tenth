@@ -105,7 +105,8 @@ class F110Env(gym.Env):
             self.seed = 12345
         try:
             self.map_name = kwargs['map']
-            base_path = "/home/benjy/sim_ws/src/safety_system_ros/map_data/"
+            # base_path = "/home/benjy/sim_ws/src/safety_system_ros/map_data/"
+            base_path = "/Users/benjamin/Documents/GitHub/safety_system_ros/" + "map_data/"
             self.map_path = base_path + self.map_name + ".yaml"
             # different default maps
             # if self.map_name == 'berlin':
