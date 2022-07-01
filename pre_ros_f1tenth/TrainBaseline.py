@@ -102,7 +102,7 @@ class TrainSimulation(BaseWrapper):
 if __name__ == "__main__":
     test_params = "baseline_params"
     t = TrainSimulation(test_params)
-    # t.run_training_evaluation()
+    t.run_training_evaluation()
 
-    t.retest_vehicle()
+    # t.retest_vehicle()
 

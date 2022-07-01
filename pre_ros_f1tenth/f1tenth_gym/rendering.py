@@ -135,6 +135,8 @@ class EnvRenderer(pyglet.window.Window):
         # load map image
         map_img_path = os.path.splitext(map_path)[0] + map_ext
         map_img = np.array(Image.open(map_img_path).transpose(Image.FLIP_TOP_BOTTOM)).astype(np.float64)
+        if len(map_img.shape) == 3:
+            map_img = map_img[:, :, 0]
         map_height = map_img.shape[0]
         map_width = map_img.shape[1]
 

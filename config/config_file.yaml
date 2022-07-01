@@ -33,8 +33,8 @@ dynamics_path: "Data/Dynamics/"
 #-------------------------------------------------------------------------
 # Kernel paramters
 nq_steer: 9              # number of modes for the steering range
-kernel_time_step: 0.2    # Planning timestep used in kernel generation
-lookahead_time_step: 0.2 # Planning timestep used the supervisor
+kernel_time_step: 0.5    # Planning timestep used in kernel generation
+lookahead_time_step: 0.5 # Planning timestep used the supervisor
 n_dx: 40                 # number of points per m in discretising the track map
 phi_range: 6.28 # I think this can be removed
 n_phi: 41                # number of points per rotation in discretising vehicle orientation

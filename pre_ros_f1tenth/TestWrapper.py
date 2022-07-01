@@ -19,7 +19,8 @@ class BaseWrapper():
         self.map_name=self.test_params.map_name
         self.conf = load_conf("config_file")
 
-        self.env = F110Env(map=self.map_name, map_ext=".png")
+        self.env = F110Env(map=self.map_name, map_ext=".pgm")
+        # self.env = F110Env(map=self.map_name, map_ext=".png")
         self.planner = None
 
         self.n_test_laps = self.test_params.n_test_laps
@@ -141,6 +142,8 @@ class BaseWrapper():
 
     def reset_simulation(self):
         reset_pose = np.zeros(3)[None, :]
+
+        # reset_pose[0, 2] = -np.pi
         if self.map_name == 'example_map':
             reset_pose[0, 2] = np.pi/2
         obs, step_reward, done, _ = self.env.reset(reset_pose)

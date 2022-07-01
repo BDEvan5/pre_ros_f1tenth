@@ -1,0 +1,143 @@
+from pre_ros_f1tenth.TestWrapper import BaseWrapper
+from safety_system_ros.Planners.RandomPlanner import RandomPlanner
+from pre_ros_f1tenth.utils import *
+from safety_system_ros.Supervisor import Supervisor, LearningSupervisor
+
+import numpy as np
+from matplotlib import pyplot as plt
+from numba import njit
+
+from safety_system_ros.utils.Dynamics import *
+# from safety_system_ros.utils.util_functions import *
+from copy import copy
+
+
+
+class Modes:
+    def __init__(self, conf) -> None:
+        self.time_step = conf.kernel_time_step
+        self.nq_steer = conf.nq_steer
+        self.max_steer = conf.max_steer
+        vehicle_speed = conf.vehicle_speed
+
+        ds = np.linspace(-self.max_steer, self.max_steer, self.nq_steer)
+        vs = vehicle_speed * np.ones_like(ds)
+        self.qs = np.stack((ds, vs), axis=1)
+
+        self.n_modes = len(self.qs)
+
+    def get_mode_id(self, delta):
+        d_ind = np.argmin(np.abs(self.qs[:, 0] - delta))
+        
+        return int(d_ind)
+
+    def action2mode(self, action):
+        id = self.get_mode_id(action[0])
+        return self.qs[id]
+
+    def __len__(self): return self.n_modes
+    
+
+class SuperT:
+    def __init__(self):
+        self.conf = load_conf("config_file") 
+        map_name = "levine_2nd"
+        
+        kernel_name = self.conf.directory + f"Data/Kernels/Kernel_transform_{map_name}.npy"
+        self.m = Modes(self.conf)
+
+        self.kernel = np.load(kernel_name)
+
+        self.resolution = self.conf.n_dx
+        self.phi_range = self.conf.phi_range
+        self.max_steer = self.conf.max_steer
+        self.n_modes = self.m.n_modes
+        
+        file_name = self.conf.directory + f'map_data/' + map_name + '.yaml'
+        with open(file_name) as file:
+            documents = yaml.full_load(file)
+            yaml_file = dict(documents.items())
+        # self.origin = np.array(yaml_file['origin'])
+        self.origin = np.array([-19.5, -6, 0])
+
+
+
+
+    def plan(self, obs):
+        state = obs['state']
+        # state = np.array([self.position[0], self.position[1], self.theta, self.velocity, 0])
+        # self.get_logger().info(f"State: {state}")
+
+        actions = check_kernel_actions(state, self.kernel, self.origin, self.resolution, self.phi_range)
+        actions = actions.astype(np.int8)
+        # action = self.select_random_action(actions)
+        action = self.select_action(actions)
+
+        return action
+
+
+    def select_action(self, actions):
+        n_search = int((self.n_modes)/2)
+        n_range = int((self.n_modes)/2)
+        
+        if not actions[n_search]:
+            return self.m.qs[n_search]
+
+        for i in range(1, 1+ n_range):
+            if not actions[i+n_search]:
+                return self.m.qs[i+n_search]
+            if not actions[i-n_search]:
+                return self.m.qs[i-n_search]
+        # print(f"No options")
+        return np.array([0, 0])
+
+    def select_random_action(self, actions):
+        # inds = (actions<1)
+        array = np.arange(self.n_modes)
+        inds = array[actions<1]
+        # print(f"inds: {inds}")
+        if len(inds)==0:
+            print(f"Actions: {actions} --> No action....")
+            return np.array([0, 0])
+        act_n = np.random.randint(0, len(inds))
+        act_ind = inds[act_n]
+        act = self.m.qs[act_ind]
+        
+        print(f"Acts: {actions} --> ind: {act_ind} --> selected: {act}")
+
+        return act
+        
+
+
+@njit(cache=True)
+def check_kernel_actions(state, kernel, origin, resolution, phi_range):
+        x_ind = min(max(0, int(round((state[0]-origin[0])*resolution))), kernel.shape[0]-1)
+        y_ind = min(max(0, int(round((state[1]-origin[1])*resolution))), kernel.shape[1]-1)
+
+        phi = state[2]
+        if phi >= phi_range/2:
+            phi = phi - phi_range
+        elif phi < -phi_range/2:
+            phi = phi + phi_range
+        theta_ind = int(round((phi + phi_range/2) / phi_range * (kernel.shape[2]-1)))
+
+        return kernel[x_ind, y_ind, theta_ind, :]
+
+
+
+class ClassicalTest(BaseWrapper):
+    def __init__(self, testing_params: str):
+        super().__init__(testing_params)
+        self.test_params = load_conf(testing_params)
+
+        self.planner = SuperT()
+
+        self.supervision = False
+
+        self.run_testing()
+
+
+if __name__ == "__main__":
+    testing_params = "testing_params"
+    ClassicalTest(testing_params)
+

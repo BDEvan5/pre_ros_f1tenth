@@ -10,8 +10,9 @@ planner: random
 agent_name: "SafetyTrainingAgent_1"
 
 # map_name: "f1_aut_wide"
+map_name: "levine_2nd"
 # map_name: "levine_blocked"
-map_name: "columbia_small"
+# map_name: "columbia_small"
 
 sim_steps: 5
 
